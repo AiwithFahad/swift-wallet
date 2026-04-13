@@ -1,124 +1,155 @@
 import { Link, useLocation } from '@tanstack/react-router';
-import { Wallet, LayoutDashboard, Send, History, Settings, LogOut, Bell, CreditCard } from 'lucide-react';
+import { Wallet, LayoutDashboard, Send, History, Settings, LogOut, Bell, CreditCard, Menu, X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { mockUser, mockNotifications } from '@/lib/mock-data';
+import { useState } from 'react';
 
 const navItems = [
-  { to: '/dashboard' as const, icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/wallet' as const, icon: CreditCard, label: 'Wallet' },
-  { to: '/send' as const, icon: Send, label: 'Send Money' },
-  { to: '/transactions' as const, icon: History, label: 'Transactions' },
-  { to: '/settings' as const, icon: Settings, label: 'Settings' },
+  { to: '/dashboard' as const, label: 'Home' },
+  { to: '/transactions' as const, label: 'Activity' },
+  { to: '/send' as const, label: 'Send & Request' },
+  { to: '/wallet' as const, label: 'Wallet' },
+  { to: '/settings' as const, label: 'Settings' },
 ];
 
-export function DashboardSidebar() {
+export function DashboardNavbar() {
   const location = useLocation();
   const unreadCount = mockNotifications.filter(n => !n.read).length;
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
-    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col border-r border-border bg-card lg:flex">
-      <div className="flex h-16 items-center gap-2 border-b border-border px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary">
-          <Wallet className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <span className="text-xl font-bold text-foreground">NovaPay</span>
-      </div>
-
-      <nav className="flex flex-1 flex-col gap-1 p-4">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.to;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={cn(
-                'flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-md'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+    <>
+      {/* Top identity bar */}
+      <div className="border-b border-border bg-primary">
+        <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-4 sm:px-6">
+          <span className="text-xs text-primary-foreground/70">{mockUser.name}</span>
+          <div className="flex items-center gap-4">
+            <button className="relative text-primary-foreground/70 hover:text-primary-foreground transition-colors">
+              <Bell className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                  {unreadCount}
+                </span>
               )}
-            >
-              <item.icon className="h-4.5 w-4.5" />
-              {item.label}
+            </button>
+            <div className="relative">
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center gap-1.5 text-xs text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+              >
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-foreground/20 text-[10px] font-bold text-primary-foreground">
+                  {mockUser.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                {mockUser.name}
+                <ChevronDown className="h-3 w-3" />
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-border bg-card py-1 shadow-lg">
+                  <Link to="/settings" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors">
+                    Profile Settings
+                  </Link>
+                  <Link to="/settings" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors">
+                    Account Settings
+                  </Link>
+                  <div className="my-1 border-t border-border" />
+                  <Link to="/login" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors">
+                    Log out
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main nav bar */}
+      <header className="sticky top-0 z-40 border-b border-border bg-card shadow-sm">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-8">
+            <Link to="/dashboard" className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
+                <Wallet className="h-4 w-4 text-primary-foreground" />
+              </div>
             </Link>
-          );
-        })}
-      </nav>
 
-      <div className="border-t border-border p-4">
-        <div className="flex items-center gap-3 rounded-xl px-4 py-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full gradient-teal text-sm font-bold text-teal-foreground">
-            {mockUser.name.split(' ').map(n => n[0]).join('')}
+            <nav className="hidden items-center gap-1 md:flex">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.to;
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={cn(
+                      'relative px-4 py-4 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'text-primary'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {item.label}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
-          <div className="flex-1 truncate">
-            <p className="text-sm font-medium text-foreground">{mockUser.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{mockUser.email}</p>
-          </div>
-        </div>
-        <Link
-          to="/login"
-          className="mt-2 flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <LogOut className="h-4 w-4" />
-          Log out
-        </Link>
-      </div>
-    </aside>
-  );
-}
 
-export function DashboardTopbar() {
-  const unreadCount = mockNotifications.filter(n => !n.read).length;
-
-  return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-md lg:pl-6">
-      <div className="flex items-center gap-2 lg:hidden">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
-          <Wallet className="h-4 w-4 text-primary-foreground" />
-        </div>
-        <span className="text-lg font-bold text-foreground">NovaPay</span>
-      </div>
-
-      <div className="hidden lg:block" />
-
-      <div className="flex items-center gap-4">
-        <button className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-              {unreadCount}
-            </span>
-          )}
-        </button>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full gradient-teal text-sm font-bold text-teal-foreground lg:hidden">
-          {mockUser.name.split(' ').map(n => n[0]).join('')}
-        </div>
-      </div>
-    </header>
-  );
-}
-
-export function DashboardMobileNav() {
-  const location = useLocation();
-
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-card/95 px-2 py-2 backdrop-blur-md lg:hidden">
-      {navItems.slice(0, 5).map((item) => {
-        const isActive = location.pathname === item.to;
-        return (
-          <Link
-            key={item.to}
-            to={item.to}
-            className={cn(
-              'flex flex-col items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-              isActive ? 'text-primary' : 'text-muted-foreground'
-            )}
+          <button
+            className="rounded-lg p-2 text-muted-foreground hover:bg-accent md:hidden"
+            onClick={() => setMobileOpen(!mobileOpen)}
           >
-            <item.icon className="h-5 w-5" />
-            {item.label.split(' ')[0]}
-          </Link>
-        );
-      })}
-    </nav>
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+
+        {/* Mobile nav dropdown */}
+        {mobileOpen && (
+          <div className="border-t border-border bg-card md:hidden">
+            <nav className="mx-auto max-w-7xl px-4 py-2 sm:px-6">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.to;
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      'block rounded-lg px-4 py-3 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-accent text-primary'
+                        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+              <div className="my-2 border-t border-border" />
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                Log out
+              </Link>
+            </nav>
+          </div>
+        )}
+      </header>
+    </>
+  );
+}
+
+export function DashboardShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <DashboardNavbar />
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
+        {children}
+      </main>
+    </div>
   );
 }

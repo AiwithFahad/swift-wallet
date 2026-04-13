@@ -18,6 +18,13 @@ export interface Notification {
   read: boolean;
 }
 
+export interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  color: string;
+}
+
 export const mockUser = {
   id: 'usr_1a2b3c4d',
   name: 'Alex Johnson',
@@ -28,6 +35,14 @@ export const mockUser = {
   createdAt: '2024-01-15',
   twoFactorEnabled: true,
 };
+
+export const mockContacts: Contact[] = [
+  { id: 'c1', name: 'Sarah Miller', email: 'sarah@example.com', color: 'bg-teal' },
+  { id: 'c2', name: 'Gregory Murphy', email: 'greg@example.com', color: 'bg-warning' },
+  { id: 'c3', name: 'Robert Reed', email: 'robert@example.com', color: 'bg-destructive' },
+  { id: 'c4', name: 'Laura Stone', email: 'laura@example.com', color: 'bg-primary' },
+  { id: 'c5', name: 'Sam Segan', email: 'sam@example.com', color: 'bg-success' },
+];
 
 export const mockTransactions: Transaction[] = [
   { id: 'txn_001', type: 'received', name: 'Sarah Miller', email: 'sarah@example.com', amount: 2500.00, status: 'success', date: '2026-04-13T10:30:00', note: 'Project payment' },
