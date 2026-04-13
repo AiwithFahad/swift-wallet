@@ -16,14 +16,41 @@ export const Route = createFileRoute('/login')({
   component: LoginPage,
 });
 
+const DEMO_CREDENTIALS = [
+  { email: 'alex@novapay.com', password: 'Demo@1234', name: 'Alex Johnson' },
+  { email: 'sarah@novapay.com', password: 'Test@5678', name: 'Sarah Miller' },
+];
+
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = Route.useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate({ to: '/dashboard' });
+    setError('');
+    setLoading(true);
+
+    setTimeout(() => {
+      const match = DEMO_CREDENTIALS.find(
+        (c) => c.email === email && c.password === password
+      );
+      if (match) {
+        localStorage.setItem('novapay_user', JSON.stringify({ name: match.name, email: match.email }));
+        navigate({ to: '/dashboard' });
+      } else {
+        setError('Invalid email or password. Please use the demo credentials below.');
+      }
+      setLoading(false);
+    }, 800);
+  };
+
+  const fillCredentials = (cred: typeof DEMO_CREDENTIALS[0]) => {
+    setEmail(cred.email);
+    setPassword(cred.password);
+    setError('');
   };
 
   return (
@@ -50,6 +77,12 @@ function LoginPage() {
           <h1 className="text-2xl font-bold text-foreground">Log in</h1>
           <p className="mt-1 text-sm text-muted-foreground">Enter your credentials to access your account</p>
 
+          {error && (
+            <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -62,10 +95,30 @@ function LoginPage() {
               </div>
               <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-            <Button type="submit" className="w-full" size="lg">
-              Sign in <ArrowRight className="h-4 w-4" />
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading ? 'Signing in…' : <>Sign in <ArrowRight className="h-4 w-4" /></>}
             </Button>
           </form>
+
+          <div className="mt-6 rounded-lg border border-border bg-muted/50 p-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Demo Credentials</p>
+            <div className="space-y-2">
+              {DEMO_CREDENTIALS.map((cred) => (
+                <button
+                  key={cred.email}
+                  type="button"
+                  onClick={() => fillCredentials(cred)}
+                  className="flex w-full items-center justify-between rounded-md border border-border bg-background px-3 py-2 text-left text-sm transition-colors hover:bg-accent"
+                >
+                  <div>
+                    <p className="font-medium text-foreground">{cred.name}</p>
+                    <p className="text-xs text-muted-foreground">{cred.email} / {cred.password}</p>
+                  </div>
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          </div>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
