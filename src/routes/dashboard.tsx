@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { DashboardSidebar, DashboardTopbar, DashboardMobileNav } from '@/components/dashboard/DashboardLayout';
+import { DashboardShell } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { mockUser, mockTransactions, mockChartData } from '@/lib/mock-data';
+import { mockUser, mockTransactions, mockChartData, mockContacts } from '@/lib/mock-data';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, ArrowDownLeft, Plus, Send, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ArrowUpRight, ArrowDownLeft, Send, DollarSign, FileText, Link2, ShoppingCart, MoreHorizontal, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
 
 export const Route = createFileRoute('/dashboard')({
   head: () => ({
@@ -16,148 +17,190 @@ export const Route = createFileRoute('/dashboard')({
   component: DashboardPage,
 });
 
+const quickLinks = [
+  { icon: Send, label: 'Send money', to: '/send' as const },
+  { icon: DollarSign, label: 'Request money', to: '/send' as const },
+  { icon: FileText, label: 'Invoicing', to: '/transactions' as const },
+  { icon: Link2, label: 'NovaPay.Me', to: '/settings' as const },
+  { icon: ShoppingCart, label: 'Checkout', to: '/wallet' as const },
+];
+
 function DashboardPage() {
+  const [sendTo, setSendTo] = useState('');
   const recentTxns = mockTransactions.slice(0, 5);
   const totalIncome = mockChartData.reduce((s, d) => s + d.income, 0);
   const totalSpending = mockChartData.reduce((s, d) => s + d.spending, 0);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <DashboardSidebar />
-      <div className="flex-1 lg:ml-64">
-        <DashboardTopbar />
-        <main className="p-4 pb-24 sm:p-6 lg:pb-6">
-          {/* Welcome */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-2xl font-bold text-foreground">Welcome back, {mockUser.name.split(' ')[0]} 👋</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Here&apos;s what&apos;s happening with your money today.</p>
-          </motion.div>
+    <DashboardShell>
+      {/* Top section: Balance + Quick Links */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        {/* Balance Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl border border-border bg-card p-6 shadow-sm lg:col-span-2"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Balance</h2>
+            <button className="text-muted-foreground hover:text-foreground">
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+          </div>
+          <p className="mt-4 text-4xl font-bold text-foreground">
+            ${mockUser.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <span className="ml-2 text-base font-normal text-muted-foreground">USD</span>
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Available</p>
 
-          {/* Balance + Quick Actions */}
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="relative overflow-hidden rounded-2xl gradient-hero p-6 text-primary-foreground shadow-xl md:col-span-2"
-            >
-              <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-teal/20 blur-[60px]" />
-              <p className="text-sm font-medium text-primary-foreground/60">Total Balance</p>
-              <motion.p
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3, type: 'spring' }}
-                className="mt-2 text-4xl font-bold"
-              >
-                ${mockUser.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </motion.p>
-              <p className="mt-1 text-xs text-primary-foreground/40">{mockUser.currency} • Updated just now</p>
-
-              <div className="mt-6 flex gap-3">
-                <Link to="/send">
-                  <Button variant="teal" size="sm" className="gap-1.5">
-                    <Send className="h-3.5 w-3.5" /> Send
-                  </Button>
-                </Link>
-                <Button variant="hero-outline" size="sm" className="gap-1.5">
-                  <Plus className="h-3.5 w-3.5" /> Add Funds
-                </Button>
-                <Button variant="hero-outline" size="sm" className="gap-1.5">
-                  <Wallet className="h-3.5 w-3.5" /> Withdraw
-                </Button>
-              </div>
-            </motion.div>
-
-            {/* Stats cards */}
-            <div className="grid gap-4">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                className="rounded-2xl border border-border bg-card p-5 shadow-card">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-muted-foreground">Income (7mo)</p>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10">
-                    <TrendingUp className="h-4 w-4 text-success" />
-                  </div>
-                </div>
-                <p className="mt-2 text-2xl font-bold text-foreground">${totalIncome.toLocaleString()}</p>
-              </motion.div>
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-                className="rounded-2xl border border-border bg-card p-5 shadow-card">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-muted-foreground">Spending (7mo)</p>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10">
-                    <TrendingDown className="h-4 w-4 text-warning" />
-                  </div>
-                </div>
-                <p className="mt-2 text-2xl font-bold text-foreground">${totalSpending.toLocaleString()}</p>
-              </motion.div>
+          <div className="mt-4 space-y-2 text-sm">
+            <div className="flex items-center justify-between border-b border-border pb-2">
+              <span className="text-muted-foreground">USD</span>
+              <span className="text-foreground">US${mockUser.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
 
-          {/* Chart + Transactions */}
-          <div className="mt-6 grid gap-6 lg:grid-cols-5">
-            {/* Chart */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-              className="rounded-2xl border border-border bg-card p-6 shadow-card lg:col-span-3">
-              <h3 className="text-sm font-semibold text-foreground">Income vs Spending</h3>
-              <div className="mt-4 h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={mockChartData}>
-                    <defs>
-                      <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="oklch(0.55 0.18 155)" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="oklch(0.55 0.18 155)" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="oklch(0.55 0.18 250)" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="oklch(0.55 0.18 250)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="oklch(0.55 0.03 260)" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="oklch(0.55 0.03 260)" />
-                    <Tooltip
-                      contentStyle={{ borderRadius: '12px', border: '1px solid oklch(0.92 0.01 255)', fontSize: 13 }}
-                      formatter={(value: number) => ['$' + value.toLocaleString()]}
-                    />
-                    <Area type="monotone" dataKey="income" stroke="oklch(0.55 0.18 155)" fill="url(#incomeGrad)" strokeWidth={2} />
-                    <Area type="monotone" dataKey="spending" stroke="oklch(0.55 0.18 250)" fill="url(#spendGrad)" strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
+          <Link to="/wallet">
+            <Button variant="default" size="sm" className="mt-5">
+              Transfer Money
+            </Button>
+          </Link>
+        </motion.div>
 
-            {/* Recent Transactions */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-              className="rounded-2xl border border-border bg-card p-6 shadow-card lg:col-span-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-foreground">Recent Transactions</h3>
-                <Link to="/transactions" className="text-xs font-medium text-teal hover:underline">View all</Link>
-              </div>
-              <div className="mt-4 space-y-3">
-                {recentTxns.map((txn) => (
-                  <div key={txn.id} className="flex items-center gap-3">
-                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${txn.type === 'received' ? 'bg-success/10' : 'bg-primary/10'}`}>
-                      {txn.type === 'received' ? (
-                        <ArrowDownLeft className="h-4 w-4 text-success" />
-                      ) : (
-                        <ArrowUpRight className="h-4 w-4 text-primary" />
-                      )}
-                    </div>
-                    <div className="flex-1 truncate">
-                      <p className="truncate text-sm font-medium text-foreground">{txn.name}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(txn.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                    </div>
-                    <p className={`text-sm font-semibold ${txn.type === 'received' ? 'text-success' : 'text-foreground'}`}>
-                      {txn.type === 'received' ? '+' : '-'}${txn.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+        {/* Quick Links + Send Money */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="rounded-xl border border-border bg-card p-6 shadow-sm lg:col-span-3"
+        >
+          <h2 className="text-lg font-semibold text-foreground">Quick links</h2>
+          <div className="mt-4 grid grid-cols-5 gap-2">
+            {quickLinks.map((link) => (
+              <Link key={link.label} to={link.to} className="group flex flex-col items-center gap-2 rounded-lg p-3 text-center transition-colors hover:bg-accent">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background transition-colors group-hover:border-primary/30">
+                  <link.icon className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">{link.label}</span>
+              </Link>
+            ))}
           </div>
-        </main>
-        <DashboardMobileNav />
+
+          <div className="mt-6 border-t border-border pt-5">
+            <h3 className="text-base font-semibold text-foreground">Send Money</h3>
+            <div className="mt-3">
+              <Input
+                placeholder="Add a mobile number, email, or name"
+                value={sendTo}
+                onChange={(e) => setSendTo(e.target.value)}
+                className="h-12 text-base"
+              />
+            </div>
+            <Link to="/send">
+              <Button variant="outline" size="sm" className="mt-3" disabled={!sendTo}>
+                Next
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
       </div>
-    </div>
+
+      {/* Insights row */}
+      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-muted-foreground">Money in</p>
+            <TrendingUp className="h-4 w-4 text-success" />
+          </div>
+          <p className="mt-2 text-2xl font-bold text-foreground">${totalIncome.toLocaleString()}</p>
+          <p className="mt-1 text-xs text-teal">Total received</p>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+          className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-muted-foreground">Money out</p>
+            <TrendingDown className="h-4 w-4 text-warning" />
+          </div>
+          <p className="mt-2 text-2xl font-bold text-foreground">${totalSpending.toLocaleString()}</p>
+          <p className="mt-1 text-xs text-muted-foreground">Total spent</p>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">Pending</p>
+          <p className="mt-2 text-2xl font-bold text-warning">$89.99</p>
+          <p className="mt-1 text-xs text-muted-foreground">1 transaction</p>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+          className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">Contacts</p>
+          <p className="mt-2 text-2xl font-bold text-foreground">{mockContacts.length}</p>
+          <p className="mt-1 text-xs text-teal">Manage contacts</p>
+        </motion.div>
+      </div>
+
+      {/* Recent Activity */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="mt-6 rounded-xl border border-border bg-card shadow-sm"
+      >
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <h2 className="text-lg font-semibold text-foreground">Recent activity</h2>
+          <Link to="/transactions" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+            More <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        {/* Filter tabs */}
+        <div className="flex gap-4 border-b border-border px-6">
+          {['All', 'Payments received', 'Payments sent'].map((tab, i) => (
+            <button
+              key={tab}
+              className={`border-b-2 py-3 text-sm font-medium transition-colors ${
+                i === 0 ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="divide-y divide-border">
+          {recentTxns.map((txn) => (
+            <div key={txn.id} className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-accent/30">
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                txn.type === 'received' ? 'bg-success/10' : 'bg-muted'
+              }`}>
+                {txn.type === 'received' ? (
+                  <ArrowDownLeft className="h-5 w-5 text-success" />
+                ) : (
+                  <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-sm font-medium text-foreground">{txn.name}</p>
+                  {txn.status === 'pending' && (
+                    <span className="rounded-full bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning">Pending</span>
+                  )}
+                  {txn.status === 'failed' && (
+                    <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">Failed</span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(txn.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {txn.note && <> · {txn.note}</>}
+                </p>
+              </div>
+              <p className={`text-sm font-semibold ${txn.type === 'received' ? 'text-success' : 'text-foreground'}`}>
+                {txn.type === 'received' ? '+' : '-'}${txn.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+              </p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </DashboardShell>
   );
 }
